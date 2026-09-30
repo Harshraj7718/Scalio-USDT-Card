@@ -31,20 +31,6 @@ const security = [
   ['Biometric & 3D Secure', 'Reveal card details, CVV, or confirm online checkouts using Face ID, Touch ID, or PIN authentication.'],
 ]
 
-// Day trails: the background canvas is inverted in the light theme, so these are
-// the complements of the night palette (#2C3480, #4B5BD6, #1E2566, #8F9AF0, #DDE2FF)
-// and come out as those same blues, as ink on white.
-const DAY_TRAILS = ['#D3CB7F', '#B4A429', '#E1DA99', '#70650F', '#221D00']
-
-// saved choice first, then the visitor's system setting
-const initialTheme = () => {
-  try {
-    const saved = localStorage.getItem('scalio-theme')
-    if (saved === 'light' || saved === 'dark') return saved
-  } catch { /* private mode */ }
-  return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-}
-
 // same finishes as the three 3D cards in the hero: Core silver, Pro black, Max Scalio blue
 const tierLook = { core: 'steel', pro: 'black', max: 'orange' }
 
@@ -100,12 +86,6 @@ export default function App() {
   const [modal, setModal] = useState(null)
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')
-  const [theme, setTheme] = useState(initialTheme)
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    try { localStorage.setItem('scalio-theme', theme) } catch { /* private mode */ }
-  }, [theme])
 
   useEffect(() => {
     fetch('/api/tiers').then(r => r.json()).then(setTiers).catch(() => {})
@@ -154,7 +134,17 @@ export default function App() {
 
     gsap.to('.badge-ring', { rotate: 360, duration: 14, ease: 'none', repeat: -1 })
 
-    gsap.fromTo('.mega', { yPercent: 40, opacity: 0.2 }, { yPercent: 0, opacity: 1, ease: 'none', scrollTrigger: { trigger: '.mega-wrap', start: 'top bottom', end: 'bottom bottom', scrub: true } })
+    // logo reveal: wipe in left to right while pulling focus, then a light sweep
+    const reveal = gsap.timeline({
+      paused: true, defaults: { ease: 'power4.out' },
+      scrollTrigger: { trigger: '.mega-wrap', start: 'top 85%', toggleActions: 'play none none reset' },
+    })
+    reveal
+      .fromTo('.mega-logo', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 1.6, ease: 'power3.inOut' })
+      .fromTo('.mega', { scale: 0.86, filter: 'blur(26px)', opacity: 0, transformOrigin: '30% 50%' }, { scale: 1, filter: 'blur(0px)', opacity: 1, duration: 1.8, clearProps: 'filter' }, 0)
+      .fromTo('.mega-shine', { backgroundPosition: '160% 0' }, { backgroundPosition: '-60% 0', duration: 1.6, ease: 'power2.inOut' }, 1.1)
+    // gentle float once revealed
+    gsap.to('.mega-logo', { y: -8, duration: 3.2, ease: 'sine.inOut', yoyo: true, repeat: -1 })
 
     gsap.from('.steps-line i', { scaleY: 0, transformOrigin: 'top', ease: 'none', scrollTrigger: { trigger: '.steps', start: 'top 70%', end: 'bottom 70%', scrub: true } })
 
@@ -177,39 +167,21 @@ export default function App() {
       {/* site-wide background: the light trails sit fixed behind every section */}
       <div className="site-bg" aria-hidden>
         <Covelight
-          palette={theme === 'light' ? DAY_TRAILS : undefined}
-          glow={theme === 'light' ? { intensity: 0.6, exposure: 0.85 } : { intensity: 0.75, exposure: 0.9 }}
+          glow={{ intensity: 0.75, exposure: 0.9 }}
           pixelRatio={1}
         />
       </div>
       <div className="bg-glow g1" /><div className="bg-glow g2" />
 
       <header className="nav">
-        <a className="logo" href="#top">Scalio<i>.</i></a>
+        <a className="logo" href="#top" aria-label="Scalio USDT Card"><img className="logo-img" src="/scalio-logo.webp" alt="Scalio USDT Card" /></a>
         <nav>{navLinks.map(([l, h]) => <a key={l} href={h}>{l}</a>)}</nav>
-        <div className="nav-right">
-          <button
-            type="button"
-            className="theme-toggle"
-            onClick={() => setTheme(t => (t === 'light' ? 'dark' : 'light'))}
-            aria-label={theme === 'light' ? 'Switch to night theme' : 'Switch to day theme'}
-            title={theme === 'light' ? 'Night theme' : 'Day theme'}
-          >
-            {theme === 'light' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="4.2" /><path d="M12 2v2.2M12 19.8V22M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2 12h2.2M19.8 12H22M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6" /></svg>
-            )}
-          </button>
-          <Magnetic className="sm" href="#tiers">Connect Wallet →</Magnetic>
-        </div>
+        <Magnetic className="sm" href="#tiers">Connect Wallet →</Magnetic>
       </header>
 
       <div id="top">
         <ScalioCardSpecimen
           ink="transparent"
-          bone={theme === 'light' ? '#0d0e14' : '#ededee'}
-          accentText={theme === 'light' ? '#2C3480' : '#8f9af0'}
           tiers={tiers.length === 3 ? tiers : undefined}
         />
       </div>
@@ -311,11 +283,16 @@ export default function App() {
         <Magnetic href="#tiers">Activate Card &amp; Claim Bonus</Magnetic>
       </section>
 
-      <div className="mega-wrap"><div className="mega">Scalio</div></div>
+      <div className="mega-wrap">
+        <div className="mega-logo">
+          <img className="mega" src="/scalio-logo.webp" alt="Scalio USDT Card" />
+          <span className="mega-shine" aria-hidden />
+        </div>
+      </div>
 
       <footer>
         <div>
-          <a className="logo" href="#top">Scalio<i>.</i></a>
+          <a className="logo" href="#top" aria-label="Scalio USDT Card"><img className="logo-img" src="/scalio-logo.webp" alt="Scalio USDT Card" /></a>
           <p className="dim">Scalio — True Self-Custody Real-Time Spending.</p>
           <p className="dim small">Supported Networks: TRON (TRC-20) | Ethereum (ERC-20) | BNB Chain (BEP-20)</p>
         </div>

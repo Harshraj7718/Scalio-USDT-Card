@@ -33,33 +33,6 @@
   --scrim-m: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.6));
 }
 
-/* Day theme */
-:root[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f5f8;
-  --orange-2: #2C3480;
-  --text: #0d0e14;
-  --strong: #0d0e14;
-  --soft: #33364a;
-  --dim: #5b5e6e;
-  --glass: rgba(255, 255, 255, 0.55);
-  --glass-b: rgba(20, 24, 60, 0.12);
-  --glass-1: rgba(255, 255, 255, 0.78);
-  --glass-2: rgba(255, 255, 255, 0.42);
-  --glass-shadow: rgba(30, 36, 90, 0.12);
-  --glass-inset: rgba(255, 255, 255, 0.95);
-  --tile: rgba(44, 52, 128, 0.06);
-  --nav-bg: rgba(255, 255, 255, 0.72);
-  --ring: rgba(13, 14, 20, 0.2);
-  --mega-a: #0d0e14;
-  --mega-b: #c9ccd8;
-  --footer-bg: rgba(255, 255, 255, 0.6);
-  --modal-bg: rgba(230, 232, 240, 0.7);
-  --input-bg: rgba(255, 255, 255, 0.85);
-  --glow-2: rgba(44, 52, 128, 0.08);
-  --scrim: radial-gradient(120% 90% at 50% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.55) 70%, rgba(255,255,255,0.75));
-  --scrim-m: linear-gradient(rgba(244,245,248,0.5), rgba(244,245,248,0.75));
-}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -122,19 +95,12 @@ section, footer, .mega-wrap { position: relative; z-index: 1; }
 }
 .nav.scrolled { background: var(--nav-bg); backdrop-filter: blur(20px); border-color: var(--glass-b); }
 .logo { font-weight: 700; font-size: 24px; letter-spacing: -0.5px; }
-.logo i { color: var(--orange-2); font-style: normal; }
+.logo { display: inline-flex; align-items: center; }
+.logo-img { display: block; height: 46px; width: auto; }
 .nav nav { display: flex; gap: 30px; font-size: 14px; color: var(--dim); }
 .nav nav a { position: relative; transition: color .3s; }
 .nav nav a::after { content: ''; position: absolute; left: 0; bottom: -4px; height: 2px; width: 100%; background: var(--orange); transform: scaleX(0); transform-origin: right; transition: transform .35s; }
 .nav nav a:hover { color: var(--strong); }
-.nav-right { display: flex; align-items: center; gap: 12px; }
-.theme-toggle {
-  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--text);
-  background: var(--glass); border: 1px solid var(--glass-b); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  transition: transform .4s cubic-bezier(.2,.8,.2,1), border-color .3s, background-color .3s;
-}
-.theme-toggle:hover { border-color: rgba(90,105,230,.6); transform: rotate(-20deg) scale(1.06); }
-.theme-toggle svg { width: 18px; height: 18px; }
 .nav nav a:hover::after { transform: scaleX(1); transform-origin: left; }
 
 /* word reveal */
@@ -281,8 +247,15 @@ section, footer, .mega-wrap { position: relative; z-index: 1; }
 .cta h2 { max-width: 900px; }
 .cta-badge { margin-bottom: -10px; }
 
-.mega-wrap { overflow: hidden; padding-top: 40px; }
-.mega { font-size: clamp(120px, 27vw, 440px); font-weight: 700; line-height: .85; text-align: center; letter-spacing: -0.06em; background: linear-gradient(180deg, var(--mega-a) 10%, var(--mega-b) 95%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mega-wrap { overflow: hidden; padding: 40px 0 24px; }
+.mega-logo { position: relative; width: min(900px, 88vw); aspect-ratio: 1663 / 534; margin: 0 auto; will-change: transform, clip-path; }
+.mega { display: block; width: 100%; height: auto; filter: drop-shadow(0 20px 60px rgba(44, 52, 128, 0.45)); will-change: transform, filter; }
+/* light sweep, clipped to the logo's own shape by using the logo as a mask */
+.mega-shine {
+  position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
+  background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.95) 50%, transparent 62%) 160% 0 / 260% 100% no-repeat;
+  -webkit-mask: url(/scalio-logo.webp) center / 100% 100% no-repeat; mask: url(/scalio-logo.webp) center / 100% 100% no-repeat;
+}
 
 /* fixed light-trail backdrop behind the whole site, with a scrim so copy stays readable */
 .site-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -290,10 +263,6 @@ section, footer, .mega-wrap { position: relative; z-index: 1; }
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: var(--scrim); transition: background .4s;
 }
-/* Day: the trails are additive light on black, so invert the canvas. Paired
-   with the complementary palette passed from App, that turns them into
-   Scalio-blue ink on white, with dark cores where the night glow is hottest. */
-:root[data-theme="light"] .site-bg > div { filter: invert(1); }
 
 footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; padding: 50px 6vw 40px; border-top: 1px solid var(--glass-b); background: var(--footer-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
 footer .links { display: flex; gap: 26px; flex-wrap: wrap; color: var(--dim); font-size: 14px; align-items: flex-start; }
@@ -322,9 +291,7 @@ footer .links a:hover { color: var(--orange-2); }
 /* phones */
 @media (max-width: 600px) {
   .nav { top: 10px; width: calc(100% - 20px); padding: 8px 10px 8px 18px; }
-  .logo { font-size: 21px; }
-  .nav-right { gap: 8px; }
-  .theme-toggle { width: 38px; height: 38px; }
+  .logo-img { height: 38px; }
   .btn { padding: 14px 24px; font-size: 15px; }
   .btn.sm { padding: 9px 16px; font-size: 13px; }
 
