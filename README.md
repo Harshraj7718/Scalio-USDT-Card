@@ -38,7 +38,7 @@ Scalio is a non-custodial USDT crypto payment card. Instead of preloading or con
 A single-page site with a scroll-driven 3D hero and a glassmorphism UI in a dark theme.
 
 - **Hero:** a WebGL stack of the three tier cards that fans, slides, spreads in depth and turns as you scroll through six frames (cover, card, tiers, zero fees, tap & pay, activate). The cards always stay in separate parallel planes, so they never intersect.
-- **Site-wide background:** a full-screen light-trail effect (Covelight, rendered with three.js) fixed behind every section.
+- **Hero background:** a full-screen light-trail effect (Covelight, rendered with three.js) pinned behind the card section, ending where the next section begins.
 - **Sections:** stats, comparison table, tier cards, how it works, security, FAQ, call to action and footer.
 - **Glassmorphism and hover effects:** frosted cards with 3D tilt and a cursor-following spotlight, magnetic buttons, card shine sweeps.
 - **Dark theme:** black and white with Scalio blue (`#2C3480`) as the accent colour.

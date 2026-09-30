@@ -29,6 +29,8 @@ export type CovelightProps = {
   pixelRatio?: number
   /** Frame-rate cap. A background does not need 60. */
   fps?: number
+  /** Hold the picture still while the page scrolls, so scrolling never competes with the GPU. */
+  pauseOnScroll?: boolean
   className?: string
   style?: React.CSSProperties
   children?: React.ReactNode
@@ -407,6 +409,7 @@ type Settings = {
   stage: typeof STAGE_DEFAULT
   pixelRatio: number
   fps: number
+  pauseOnScroll: boolean
 }
 
 // #region engine
@@ -615,6 +618,16 @@ const startEngine = (host: HTMLElement, settings: React.MutableRefObject<Setting
   let lastStamp = 0
   let clock = 0
   let lastDraw = 0
+  // while the page is scrolling, keep the last frame on screen and skip rendering
+  let scrolling = false
+  let scrollTimer = 0
+  const onScroll = () => {
+    if (!settings.current.pauseOnScroll) return
+    scrolling = true
+    window.clearTimeout(scrollTimer)
+    scrollTimer = window.setTimeout(() => { scrolling = false }, 140)
+  }
+  window.addEventListener("scroll", onScroll, { passive: true })
   const tick = (now: number) => {
     rafId = 0
     if (!permitted()) {
@@ -624,6 +637,10 @@ const startEngine = (host: HTMLElement, settings: React.MutableRefObject<Setting
     // frame cap: skip this vsync without touching lastStamp, so dt accumulates
     const gap = 1000 / Math.max(1, settings.current.fps)
     if (!gate.calm && lastDraw && now - lastDraw < gap - 2) {
+      rafId = requestAnimationFrame(tick)
+      return
+    }
+    if (scrolling && !gate.calm) {
       rafId = requestAnimationFrame(tick)
       return
     }
@@ -691,6 +708,8 @@ const startEngine = (host: HTMLElement, settings: React.MutableRefObject<Setting
     observer?.disconnect()
     sizeWatcher.disconnect()
     document.removeEventListener("visibilitychange", onTab)
+    window.removeEventListener("scroll", onScroll)
+    window.clearTimeout(scrollTimer)
     motionQuery?.removeEventListener("change", onMotionPref)
     strandGeo.dispose()
     quad.geometry.dispose()
@@ -715,6 +734,7 @@ export default function Covelight({
   stage,
   pixelRatio = 1.5,
   fps = 60,
+  pauseOnScroll = false,
   className = "",
   style,
   children,
@@ -732,6 +752,7 @@ export default function Covelight({
     stage: { ...STAGE_DEFAULT, ...stage },
     pixelRatio,
     fps,
+    pauseOnScroll,
   }
 
   React.useEffect(() => {

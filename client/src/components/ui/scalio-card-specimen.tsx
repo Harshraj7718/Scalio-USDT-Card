@@ -789,7 +789,7 @@ export default function ScalioCardSpecimen({
       const sr = stage.getBoundingClientRect()
       W = Math.max(1, sr.width)
       H = Math.max(1, sr.height)
-      dpr = Math.min(window.devicePixelRatio || 1, 2)
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       const cw = Math.round(W * dpr)
       const ch = Math.round(H * dpr)
       if (canvas.width !== cw || canvas.height !== ch) {
@@ -1390,14 +1390,6 @@ export default function ScalioCardSpecimen({
           ))}
         </nav>
 
-        {/* grain, static */}
-        <svg aria-hidden className="pointer-events-none absolute inset-0" width="100%" height="100%" style={{ opacity: 0.08, mixBlendMode: "screen" }}>
-          <filter id="scs-grain">
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={2} stitchTiles="stitch" />
-            <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.55 0" />
-          </filter>
-          <rect width="100%" height="100%" filter="url(#scs-grain)" />
-        </svg>
       </div>
     </section>
   )

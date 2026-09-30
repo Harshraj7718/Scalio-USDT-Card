@@ -173,21 +173,6 @@ export default function App() {
 
   return (
     <div ref={root} className="app">
-      {/* site-wide background: the light trails sit fixed behind every section */}
-      <div className="site-bg" aria-hidden>
-        {bgReady && (
-          <Suspense fallback={null}>
-            <Covelight
-              trails={{ count: 64 }}
-              stage={{ wallHeight: 900 }}
-              glow={{ intensity: 0.75, exposure: 0.9, focusBlur: 0 }}
-              pixelRatio={0.75}
-              fps={30}
-            />
-          </Suspense>
-        )}
-      </div>
-      <div className="bg-glow g1" /><div className="bg-glow g2" />
 
       <header className="nav">
         <a className="logo" href="#top" aria-label="Scalio USDT Card"><img className="logo-img" src="/scalio-logo.webp" alt="Scalio USDT Card" /></a>
@@ -196,6 +181,21 @@ export default function App() {
       </header>
 
       <div id="top">
+        {/* hero background: pinned behind the card section, scrolls away with it */}
+        <div className="hero-bg" aria-hidden>
+          {bgReady && (
+            <Suspense fallback={null}>
+              <Covelight
+                trails={{ count: 90 }}
+                stage={{ wallHeight: 900 }}
+                glow={{ intensity: 0.75, exposure: 0.9, focusBlur: 0 }}
+                pixelRatio={1.5}
+                fps={30}
+                pauseOnScroll
+              />
+            </Suspense>
+          )}
+        </div>
         <ScalioCardSpecimen
           ink="transparent"
           tiers={tiers.length === 3 ? tiers : undefined}
