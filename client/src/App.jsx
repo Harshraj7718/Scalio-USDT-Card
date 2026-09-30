@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import Card from './components/Card'
 import Badge from './components/Badge'
 import ScalioCardSpecimen from '@/components/ui/scalio-card-specimen'
-import Covelight from '@/components/ui/covelight'
+// three.js is most of the bundle, so the background loads as its own chunk after first paint
+const Covelight = lazy(() => import('@/components/ui/covelight'))
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -86,6 +87,14 @@ export default function App() {
   const [modal, setModal] = useState(null)
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')
+  const [bgReady, setBgReady] = useState(false)
+
+  // start the WebGL background once the page itself has painted and the browser is idle
+  useEffect(() => {
+    const go = () => setBgReady(true)
+    const idle = window.requestIdleCallback ? window.requestIdleCallback(go, { timeout: 1500 }) : setTimeout(go, 700)
+    return () => (window.cancelIdleCallback ? window.cancelIdleCallback(idle) : clearTimeout(idle))
+  }, [])
 
   useEffect(() => {
     fetch('/api/tiers').then(r => r.json()).then(setTiers).catch(() => {})
@@ -166,10 +175,17 @@ export default function App() {
     <div ref={root} className="app">
       {/* site-wide background: the light trails sit fixed behind every section */}
       <div className="site-bg" aria-hidden>
-        <Covelight
-          glow={{ intensity: 0.75, exposure: 0.9 }}
-          pixelRatio={1}
-        />
+        {bgReady && (
+          <Suspense fallback={null}>
+            <Covelight
+              trails={{ count: 64 }}
+              stage={{ wallHeight: 900 }}
+              glow={{ intensity: 0.75, exposure: 0.9, focusBlur: 0 }}
+              pixelRatio={0.75}
+              fps={30}
+            />
+          </Suspense>
+        )}
       </div>
       <div className="bg-glow g1" /><div className="bg-glow g2" />
 

@@ -27,6 +27,8 @@ export type CovelightProps = {
   stage?: Partial<typeof STAGE_DEFAULT>
   /** Cap on device pixel ratio; the bloom chain is costly at 2×+. */
   pixelRatio?: number
+  /** Frame-rate cap. A background does not need 60. */
+  fps?: number
   className?: string
   style?: React.CSSProperties
   children?: React.ReactNode
@@ -404,6 +406,7 @@ type Settings = {
   glow: typeof GLOW_DEFAULT
   stage: typeof STAGE_DEFAULT
   pixelRatio: number
+  fps: number
 }
 
 // #region engine
@@ -491,7 +494,7 @@ const startEngine = (host: HTMLElement, settings: React.MutableRefObject<Setting
   const resize = () => {
     const w = host.clientWidth
     const h = host.clientHeight
-    const r = clampTo(Math.min(window.devicePixelRatio || 1, settings.current.pixelRatio), 0.5, 2)
+    const r = clampTo(Math.min(window.devicePixelRatio || 1, settings.current.pixelRatio), 0.4, 2)
     if (w < 1 || h < 1) return
     if (w === cssW && h === cssH && r === ratio) return
     cssW = w
@@ -611,12 +614,20 @@ const startEngine = (host: HTMLElement, settings: React.MutableRefObject<Setting
   let rafId = 0
   let lastStamp = 0
   let clock = 0
+  let lastDraw = 0
   const tick = (now: number) => {
     rafId = 0
     if (!permitted()) {
       lastStamp = 0
       return
     }
+    // frame cap: skip this vsync without touching lastStamp, so dt accumulates
+    const gap = 1000 / Math.max(1, settings.current.fps)
+    if (!gate.calm && lastDraw && now - lastDraw < gap - 2) {
+      rafId = requestAnimationFrame(tick)
+      return
+    }
+    lastDraw = now
     const dt = lastStamp ? Math.min((now - lastStamp) / 1000, 0.05) : 0
     lastStamp = now
     if (!gate.calm) {
@@ -703,6 +714,7 @@ export default function Covelight({
   glow,
   stage,
   pixelRatio = 1.5,
+  fps = 60,
   className = "",
   style,
   children,
@@ -719,6 +731,7 @@ export default function Covelight({
     glow: { ...GLOW_DEFAULT, ...glow },
     stage: { ...STAGE_DEFAULT, ...stage },
     pixelRatio,
+    fps,
   }
 
   React.useEffect(() => {
