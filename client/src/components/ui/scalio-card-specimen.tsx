@@ -49,6 +49,8 @@ export type ScalioCardSpecimenProps = {
   /** Bottom bar in the last frame. */
   links?: [SpecimenLink, SpecimenLink]
   fontFamily?: string
+  /** Logo printed on the back of the cards. Must be same-origin or CORS-enabled. */
+  logoSrc?: string
   /** Stylesheet for the display face. `null` loads nothing. */
   fontHref?: string | null
   ink?: string
@@ -139,9 +141,10 @@ const buildMesh = () => {
     const f = ol.map(([x, y]) => push(x, y, hz, [0, 0, 1], fu(x), fv(y), ci, 0))
     for (let i = 0; i < n; i++) idx.push(c0, f[i], f[(i + 1) % n])
 
-    // back face keeps local 0..1 uvs for the magnetic stripe
-    const b0 = push(0, 0, -hz, [0, 0, -1], 0.5, 0.5, ci, 2)
-    const b = ol.map(([x, y]) => push(x, y, -hz, [0, 0, -1], fu(x), (CARD_H / 2 - y) / CARD_H, ci, 2))
+    // back face samples its own back atlas; u is mirrored because the back is seen from behind
+    const bv = (y: number) => (ci + (CARD_H / 2 - y) / CARD_H) / CARDS
+    const b0 = push(0, 0, -hz, [0, 0, -1], 0.5, bv(0), ci, 2)
+    const b = ol.map(([x, y]) => push(x, y, -hz, [0, 0, -1], 1 - fu(x), bv(y), ci, 2))
     for (let i = 0; i < n; i++) idx.push(b0, b[(i + 1) % n], b[i])
 
     // milled edge, hard-normalled so the rim catches a bright line
@@ -305,6 +308,79 @@ const paintFaces = (cv: HTMLCanvasElement, brand: string, tiers: SpecimenTier[],
     ls(0)
   }
 }
+
+/** Prints the three card backs: magnetic stripe, the Scalio logo, one line of small print. */
+const paintBacks = (cv: HTMLCanvasElement, tiers: SpecimenTier[], accent: string, font: string, logo: HTMLImageElement | null) => {
+  cv.width = FACE_W
+  cv.height = FACE_H * CARDS
+  const g = cv.getContext("2d")
+  if (!g) return
+  const looks = [
+    { bg: ["#d9dae0", "#9fa1a9", "#666870"], sub: "rgba(13,13,16,0.6)" },
+    { bg: ["#1f1f24", "#0d0d10", "#030304"], sub: "rgba(244,244,245,0.5)" },
+    { bg: [mixHex(accent, "#ffffff", 0.16), accent, mixHex(accent, "#000000", 0.6)], sub: "rgba(255,255,255,0.6)" },
+  ]
+  for (let i = 0; i < CARDS; i++) {
+    const L = looks[i]
+    const y0 = i * FACE_H
+    const grad = g.createLinearGradient(FACE_W, y0, 0, y0 + FACE_H)
+    grad.addColorStop(0, L.bg[0])
+    grad.addColorStop(0.55, L.bg[1])
+    grad.addColorStop(1, L.bg[2])
+    g.fillStyle = grad
+    g.fillRect(0, y0, FACE_W, FACE_H)
+
+    // guilloché arcs, mirrored to the left edge since this is the reverse side
+    g.save()
+    g.strokeStyle = L.sub
+    g.globalAlpha = 0.14
+    g.lineWidth = 1.5
+    for (let r = 120; r < 900; r += 26) {
+      g.beginPath()
+      g.arc(-FACE_W * 0.02, y0 + FACE_H * 0.95, r, 0, Math.PI * 2)
+      g.stroke()
+    }
+    g.restore()
+
+    // magnetic stripe
+    const sy = y0 + FACE_H * 0.12
+    const sh = FACE_H * 0.18
+    const stripe = g.createLinearGradient(0, sy, 0, sy + sh)
+    stripe.addColorStop(0, "#0a0a0c")
+    stripe.addColorStop(0.5, "#17171b")
+    stripe.addColorStop(1, "#050506")
+    g.fillStyle = stripe
+    g.fillRect(0, sy, FACE_W, sh)
+
+    // the logo, centred below the stripe
+    const lw = FACE_W * 0.54
+    if (logo && logo.naturalWidth) {
+      const lh = (lw * logo.naturalHeight) / logo.naturalWidth
+      const lx = (FACE_W - lw) / 2
+      const ly = y0 + FACE_H * 0.62 - lh / 2
+      g.save()
+      g.shadowColor = i === 2 ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.5)"
+      g.shadowBlur = 14
+      g.shadowOffsetY = 3
+      g.drawImage(logo, lx, ly, lw, lh)
+      g.restore()
+    } else {
+      g.fillStyle = "rgba(255,255,255,0.85)"
+      g.textAlign = "center"
+      g.font = "600 84px " + font
+      g.fillText("Scalio", FACE_W / 2, y0 + FACE_H * 0.66)
+    }
+
+    // fine print
+    g.textAlign = "center"
+    g.fillStyle = L.sub
+    ;(g as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "3px"
+    g.font = "500 17px " + font
+    g.fillText(((tiers[i]?.name || "Scalio") + "  ·  REAL-TIME USDT  ·  NON-CUSTODIAL").toUpperCase(), FACE_W / 2, y0 + FACE_H * 0.92)
+    ;(g as CanvasRenderingContext2D & { letterSpacing?: string }).letterSpacing = "0px"
+  }
+}
+
 // #endregion
 
 // #region scroll
@@ -515,6 +591,7 @@ precision highp float;
 uniform vec3 u_eye;
 uniform vec3 u_accent;
 uniform sampler2D u_tex;
+uniform sampler2D u_back;
 uniform float u_hasTex;
 varying vec3 v_n;
 varying vec3 v_w;
@@ -547,7 +624,8 @@ void main() {
     if (u_hasTex > 0.5) base = pow(texture2D(u_tex, v_uv).rgb, vec3(2.2));
     gloss = 0.22;
   } else if (v_mat > 1.5) {
-    if (v_uv.y > 0.12 && v_uv.y < 0.3) { base = vec3(0.004); gloss = 0.7; }
+    if (u_hasTex > 0.5) base = pow(texture2D(u_back, v_uv).rgb, vec3(2.2));
+    gloss = 0.26;
   } else {
     gloss = 1.0;
   }
@@ -635,6 +713,7 @@ export default function ScalioCardSpecimen({
     { label: "COMPARE CARD TIERS", href: "#compare" },
   ],
   fontFamily = DISPLAY,
+  logoSrc = "/scalio-logo.webp",
   fontHref = FONT_HREF,
   ink = "#050505",
   bone = "#ededee",
@@ -681,8 +760,8 @@ export default function ScalioCardSpecimen({
     document.head.appendChild(link)
   }, [fontHref])
 
-  const look = React.useRef({ accent, alive, reduced, name, three, fontFamily })
-  look.current = { accent, alive, reduced, name, three, fontFamily }
+  const look = React.useRef({ accent, alive, reduced, name, three, fontFamily, logoSrc })
+  look.current = { accent, alive, reduced, name, three, fontFamily, logoSrc }
   const facesKey = name + "|" + accent + "|" + three.map((t) => t.name + t.bonus + t.cashback).join("|")
 
   React.useEffect(() => {
@@ -703,15 +782,27 @@ export default function ScalioCardSpecimen({
     let vbo: WebGLBuffer | null = null
     let ibo: WebGLBuffer | null = null
     let tex: WebGLTexture | null = null
+    let texBack: WebGLTexture | null = null
+    const backs = document.createElement("canvas")
+    const logo = new Image()
     const loc: Record<string, WebGLUniformLocation | null> = {}
 
     const uploadFaces = () => {
       const L = look.current
       paintFaces(faces, L.name, L.three, L.accent, L.fontFamily)
-      if (!gl || !tex) return
+      paintBacks(backs, L.three, L.accent, L.fontFamily, logo.complete && logo.naturalWidth ? logo : null)
+      if (!gl || !tex || !texBack) return
+      gl.activeTexture(gl.TEXTURE0)
       gl.bindTexture(gl.TEXTURE_2D, tex)
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, faces)
+      gl.activeTexture(gl.TEXTURE1)
+      gl.bindTexture(gl.TEXTURE_2D, texBack)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, backs)
+      gl.activeTexture(gl.TEXTURE0)
     }
+    // the logo loads after first paint; reprint the backs once it arrives
+    logo.onload = () => uploadFaces()
+    logo.src = look.current.logoSrc
 
     const initGL = () => {
       gl = canvas.getContext("webgl", { alpha: true, antialias: true, premultipliedAlpha: true }) as WebGLRenderingContext | null
@@ -749,7 +840,7 @@ export default function ScalioCardSpecimen({
       attr("a_nrm", 3, 3)
       attr("a_uv", 2, 6)
       attr("a_mat", 2, 8)
-      for (const n of ["u_vp", "u_model", "u_offset", "u_time", "u_fan", "u_slide", "u_gap", "u_morph", "u_deal", "u_sway", "u_eye", "u_accent", "u_tex", "u_hasTex"])
+      for (const n of ["u_vp", "u_model", "u_offset", "u_time", "u_fan", "u_slide", "u_gap", "u_morph", "u_deal", "u_sway", "u_eye", "u_accent", "u_tex", "u_back", "u_hasTex"])
         loc[n] = gl.getUniformLocation(prog, n)
       // NPOT atlas: no mips, clamped
       tex = gl.createTexture()
@@ -760,6 +851,15 @@ export default function ScalioCardSpecimen({
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
       gl.uniform1i(loc.u_tex, 0)
+      texBack = gl.createTexture()
+      gl.activeTexture(gl.TEXTURE1)
+      gl.bindTexture(gl.TEXTURE_2D, texBack)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      gl.uniform1i(loc.u_back, 1)
+      gl.activeTexture(gl.TEXTURE0)
       gl.enable(gl.DEPTH_TEST)
       gl.clearColor(0, 0, 0, 0)
       uploadFaces()
@@ -1071,6 +1171,7 @@ export default function ScalioCardSpecimen({
         g.deleteBuffer(vbo)
         g.deleteBuffer(ibo)
         g.deleteTexture(tex)
+        g.deleteTexture(texBack)
         g.deleteProgram(prog)
       }
     }
