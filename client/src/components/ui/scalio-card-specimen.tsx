@@ -1189,7 +1189,7 @@ export default function ScalioCardSpecimen({
           >
             <span
               {...sc(0, "rise", 0.6)}
-              style={{ ...hidden, position: "absolute", right: "0.04em", bottom: "104%", fontSize: "0.2em", letterSpacing: "-0.02em", color: accentText }}
+              style={{ ...hidden, position: "absolute", right: "0.04em", top: "92%", fontSize: "0.2em", letterSpacing: "-0.02em", color: accentText }}
             >
               USDT Card
             </span>

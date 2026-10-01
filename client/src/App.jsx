@@ -216,7 +216,7 @@ export default function App() {
         </div>
       </section>
 
-      <section className="sec" id="compare">
+      <section className="sec light" id="compare">
         <div className="sec-head">
           <h2 className="reveal-words">{splitWords('Why Scalio is Built Differently')}</h2>
           <p className="fade-up">Experience true non-custodial crypto payments without traditional debit card friction.</p>
@@ -257,7 +257,7 @@ export default function App() {
         </div>
       </section>
 
-      <section className="sec" id="how">
+      <section className="sec light" id="how">
         <div className="sec-head"><h2 className="reveal-words">{splitWords('How It Works')}</h2></div>
         <div className="steps">
           <div className="steps-line"><i /></div>
@@ -281,7 +281,7 @@ export default function App() {
         </div>
       </section>
 
-      <section className="sec narrow" id="faq">
+      <section className="sec narrow light" id="faq">
         <div className="sec-head"><h2 className="reveal-words">{splitWords('Frequently Asked Questions')}</h2></div>
         <div className="faq">
           {faqs.map((f, i) => (
