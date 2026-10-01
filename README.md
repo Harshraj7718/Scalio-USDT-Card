@@ -6,6 +6,38 @@ Scalio is a non-custodial USDT crypto payment card. Instead of preloading or con
 
 ---
 
+## Preview
+
+<p align="center">
+  <img src="docs/screenshots/hero.jpg" alt="Scalio hero: 3D card stack over animated light trails" width="100%" />
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/cards-fan.jpg" alt="The three cards fanned out as you scroll" /></td>
+    <td width="50%"><img src="docs/screenshots/card-back.jpg" alt="The back of the card with the Scalio logo and magnetic stripe" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>The three cards fan out as you scroll</sub></td>
+    <td align="center"><sub>The back of the card, with the logo and magnetic stripe</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/cards-section.jpg" alt="Choose your card section" /></td>
+    <td width="50%"><img src="docs/screenshots/comparison.jpg" alt="Comparison section on a white background" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Choose your card</sub></td>
+    <td align="center"><sub>Why Scalio is built differently</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/mobile-hero.jpg" alt="Scalio on a phone" width="260" /><br />
+  <sub>The same hero on a phone</sub>
+</p>
+
+---
+
 ## Overview
 
 | | |
@@ -81,6 +113,7 @@ scalio card/
 │       │       ├── scalio-card-specimen.tsx   Scroll-scrubbed 3D card hero (WebGL)
 │       │       └── covelight.tsx              Light-trail background (three.js)
 │       └── lib/utils.ts
+├── docs/screenshots/            Preview images used in this README
 └── server/
     └── index.js                 Express API + static hosting
 ```
