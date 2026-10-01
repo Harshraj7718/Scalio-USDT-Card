@@ -178,6 +178,12 @@ section, footer, .mega-wrap { position: relative; z-index: 1; }
   --tile: rgba(44, 52, 128, 0.07); --ring: rgba(13, 14, 20, 0.2);
   background: linear-gradient(180deg, #f6f7fb, #eceef6); color: var(--text);
 }
+/* soft edges: each white section fades in from, and out into, the dark page. The fades sit outside
+   the section's box, inside the neighbours' empty padding, so no copy is washed out. */
+.sec.light { --fade: 130px; }
+.sec.light::before, .sec.light::after { content: ''; position: absolute; left: 0; right: 0; height: var(--fade); pointer-events: none; }
+.sec.light::before { bottom: 100%; background: linear-gradient(180deg, rgba(246,247,251,0) 0%, rgba(246,247,251,0.06) 25%, rgba(246,247,251,0.3) 62%, #f6f7fb 100%); }
+.sec.light::after  { top: 100%;    background: linear-gradient(180deg, #eceef6 0%, rgba(236,238,246,0.3) 38%, rgba(236,238,246,0.06) 75%, rgba(236,238,246,0) 100%); }
 .sec.light .tilt:hover { box-shadow: 0 24px 50px rgba(44, 52, 128, 0.16), inset 0 1px 0 #fff; }
 
 /* sections */
@@ -302,6 +308,7 @@ footer .links a:hover { color: var(--orange-2); }
 }
 /* phones */
 @media (max-width: 600px) {
+  .sec.light { --fade: 84px; }
   .nav { top: 10px; width: calc(100% - 20px); padding: 8px 10px 8px 18px; }
   .logo-img { height: auto; width: min(118px, 36vw); }
   .btn { padding: 14px 24px; font-size: 15px; }
@@ -345,6 +352,8 @@ footer .links a:hover { color: var(--orange-2); }
   .tilt:hover { box-shadow: none; }
   /* blurring a live WebGL canvas behind every card is the costliest thing on a phone */
   .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: linear-gradient(135deg, rgba(28,28,34,0.82), rgba(16,16,20,0.72)); }
+  /* ...but cards in the white sections keep a light fill, or their dark text disappears */
+  .sec.light .glass { background: linear-gradient(135deg, rgba(255,255,255,0.97), rgba(255,255,255,0.86)); box-shadow: 0 10px 30px rgba(30,36,90,0.10), inset 0 1px 0 #fff; }
 
   /* the trails run straight down the middle of a portrait screen, right behind the
      copy, so hold them back and darken the scrim; this keeps small text readable */
