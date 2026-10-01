@@ -10,7 +10,7 @@ const Covelight = lazy(() => import('@/components/ui/covelight'))
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-const navLinks = [['Features', '#features'], ['Card Tiers', '#tiers'], ['Instant Bonus', '#how'], ['Security', '#security'], ['FAQs', '#faq']]
+const navLinks = [['Features', '#features'], ['Cards', '#cards'], ['Instant Bonus', '#how'], ['Security', '#security'], ['FAQs', '#faq']]
 
 const compare = [
   ['Fund Custody', 'Preload into centralized bank/app balance', '100% Self-Custody in Trust Wallet'],
@@ -22,7 +22,7 @@ const compare = [
 
 const steps = [
   ['01', 'Connect Your Trust Wallet', 'Link your self-custody Trust Wallet securely using WalletConnect or the Scalio web/mobile app interface.'],
-  ['02', 'Select Tier & Activate Card', 'Choose your tier ($1k, $5k, or $10k). Activate for $0 and receive your instant joining cashback (10%, 15%, or 20%) deposited directly into your Trust Wallet as USDT.'],
+  ['02', 'Select Card & Activate', 'Choose your card ($1k, $5k, or $10k). Activate for $0 and receive your instant joining cashback (10%, 15%, or 20%) deposited directly into your Trust Wallet as USDT.'],
   ['03', 'Tap, Spend & Earn', 'Add your digital card to Apple Pay or Google Pay. Spend online or tap at any POS — USDT is debited in real time and you earn up to 10% cashback on every transaction.'],
 ]
 
@@ -97,14 +97,14 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/tiers').then(r => r.json()).then(setTiers).catch(() => {})
+    fetch('/api/cards').then(r => r.json()).then(setTiers).catch(() => {})
     fetch('/api/faqs').then(r => r.json()).then(setFaqs).catch(() => {})
   }, [])
 
   const activate = async e => {
     e.preventDefault()
     try {
-      const r = await fetch('/api/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tier: modal, email }) })
+      const r = await fetch('/api/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ card: modal, email }) })
       const d = await r.json()
       setMsg(d.message || d.error)
       if (d.ok) setEmail('')
@@ -177,7 +177,7 @@ export default function App() {
       <header className="nav">
         <a className="logo" href="#top" aria-label="Scalio USDT Card"><img className="logo-img" src="/scalio-logo.webp" alt="Scalio USDT Card" /></a>
         <nav>{navLinks.map(([l, h]) => <a key={l} href={h}>{l}</a>)}</nav>
-        <Magnetic className="sm" href="#tiers">Connect Wallet →</Magnetic>
+        <Magnetic className="sm" href="#cards">Get Card →</Magnetic>
       </header>
 
       <div id="top">
@@ -230,10 +230,10 @@ export default function App() {
       </section>
 
 
-      <section className="sec" id="tiers">
+      <section className="sec" id="cards">
         <div className="sec-head">
-          <h2 className="reveal-words">{splitWords('Choose Your Tier. Unlock Maximum Rewards.')}</h2>
-          <p className="fade-up">Select the tier that aligns with your Trust Wallet balance. All tiers include $0 joining fee and lifetime $0 annual fee.</p>
+          <h2 className="reveal-words">{splitWords('Choose Your Card. Unlock Maximum Rewards.')}</h2>
+          <p className="fade-up">Select the card that aligns with your Trust Wallet balance. All cards include $0 joining fee and lifetime $0 annual fee.</p>
         </div>
         <div className="tier-grid">
           {tiers.map(t => (
@@ -250,10 +250,10 @@ export default function App() {
               </div>
               <ul>{t.perks.map(p => <li key={p}>{p}</li>)}</ul>
               <p className="fees">$0 joining · $0 annual · {t.support}</p>
-              <Magnetic className="full" href="#tiers" onClick={e => { e.preventDefault(); setMsg(''); setModal(t.id) }}>Activate {t.name.split(' ')[1]} Tier</Magnetic>
+              <Magnetic className="full" href="#cards" onClick={e => { e.preventDefault(); setMsg(''); setModal(t.id) }}>Activate {t.name.split(' ')[1]}</Magnetic>
             </TiltCard>
           ))}
-          {!tiers.length && <p className="dim">Start the Node server to load tiers (npm run dev in /server).</p>}
+          {!tiers.length && <p className="dim">Start the Node server to load the cards (npm run dev in /server).</p>}
         </div>
       </section>
 
@@ -296,7 +296,7 @@ export default function App() {
       <section className="cta sec">
         <Badge className="cta-badge" />
         <h2 className="reveal-words">{splitWords('Activate Your Card. Claim Your Instant Bonus.')}</h2>
-        <Magnetic href="#tiers">Activate Card &amp; Claim Bonus</Magnetic>
+        <Magnetic href="#cards">Activate Card &amp; Claim Bonus</Magnetic>
       </section>
 
       <div className="mega-wrap">
@@ -313,7 +313,7 @@ export default function App() {
           <p className="dim small">Supported Networks: TRON (TRC-20) | Ethereum (ERC-20) | BNB Chain (BEP-20)</p>
         </div>
         <div className="links">
-          <a href="#features">Features</a><a href="#tiers">Card Tiers</a><a href="#security">Security</a>
+          <a href="#features">Features</a><a href="#cards">Cards</a><a href="#security">Security</a>
           <a href="#top">Terms of Service</a><a href="#top">Privacy Policy</a>
         </div>
         <p className="copy">© 2026 Scalio. All rights reserved.</p>
@@ -322,7 +322,7 @@ export default function App() {
       {modal && (
         <div className="modal-bg" onClick={() => setModal(null)}>
           <form className="glass modal" onClick={e => e.stopPropagation()} onSubmit={activate}>
-            <h3>Activate {modal.toUpperCase()} tier</h3>
+            <h3>Activate {modal.toUpperCase()} card</h3>
             <p className="dim">Enter your email to join the activation list.</p>
             <input type="email" required placeholder="you@email.com" value={email} onChange={e => setEmail(e.target.value)} />
             <button className="btn full"><span>Submit</span></button>

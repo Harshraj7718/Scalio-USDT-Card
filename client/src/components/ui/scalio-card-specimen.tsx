@@ -289,7 +289,7 @@ const paintFaces = (cv: HTMLCanvasElement, brand: string, tiers: SpecimenTier[],
     g.fillText("2243 6652 9435 9982", 70, y0 + 440)
 
     const cols: [string, string][] = [
-      ["TIER", (t?.name || brand).toUpperCase()],
+      ["CARD", (t?.name || brand).toUpperCase()],
       ["JOINING BONUS", (t ? t.bonus : 0) + "% USDT"],
       ["CASHBACK", (t ? t.cashback : 0) + "%"],
     ]
@@ -467,7 +467,7 @@ const KEYS_TALL: Partial<Key>[] = [
 ]
 const SCENES = KEYS.length
 const HOLD = 0.34
-const NAV = ["Cover", "Card", "Tiers", "Zero Fees", "Tap & Pay", "Activate"]
+const NAV = ["Cover", "Card", "Rewards", "Zero Fees", "Tap & Pay", "Activate"]
 
 const keyAt = (coord: number, tall: boolean): Key => {
   const i = Math.max(0, Math.min(SCENES - 1, Math.floor(coord)))
@@ -657,7 +657,7 @@ const DEFAULT_TAGLINE = [
 ]
 const DEFAULT_STEPS: SpecimenStep[] = [
   { n: "01", title: "Connect", text: "Trust Wallet via WalletConnect" },
-  { n: "02", title: "Activate", text: "Pick a tier, claim your bonus" },
+  { n: "02", title: "Activate", text: "Pick a card, claim your bonus" },
   { n: "03", title: "Tap & earn", text: "Real-time USDT debit" },
 ]
 
@@ -707,10 +707,10 @@ export default function ScalioCardSpecimen({
   networks = "TRON·ETH·BNB",
   networkDetail = "TRC-20 / ERC-20 / BEP-20",
   steps = DEFAULT_STEPS,
-  cta = { label: "Activate", href: "#tiers" },
+  cta = { label: "Activate", href: "#cards" },
   links = [
-    { label: "ACTIVATE CARD & CLAIM BONUS", href: "#tiers" },
-    { label: "COMPARE CARD TIERS", href: "#compare" },
+    { label: "ACTIVATE CARD & CLAIM BONUS", href: "#cards" },
+    { label: "COMPARE CARDS", href: "#compare" },
   ],
   fontFamily = DISPLAY,
   logoSrc = "/scalio-logo.webp",
@@ -1323,7 +1323,7 @@ export default function ScalioCardSpecimen({
             ))}
           </div>
           <div {...sc(1, "rise", 0.7)} className="absolute" style={{ ...sans, ...hidden, left: "5cqw", bottom: "5cqh", fontSize: 9, letterSpacing: "0.3em", textTransform: "uppercase" }}>
-            <span style={{ color: accentText }}>02</span> — Three tiers, one card
+            <span style={{ color: accentText }}>02</span> — Three cards, one wallet
           </div>
         </div>
 
@@ -1343,7 +1343,7 @@ export default function ScalioCardSpecimen({
             <div className="scs-spec-mid relative h-full text-center">
               <div {...sc(2, "rise", 0.45)} className="absolute w-full" style={{ ...hidden, top: "58%", lineHeight: 1.05 }}>
                 <div style={{ fontSize: cur ? "min(3.6cqw, 5cqh)" : "min(2.4cqw, 3.4cqh)", color: cur ? accentText : undefined, transition: "font-size .35s cubic-bezier(.2,.8,.2,1)" }}>
-                  {cur ? cur.name : "Hover a tier"}
+                  {cur ? cur.name : "Hover a card"}
                 </div>
                 <div style={{ ...sans, fontSize: 9, letterSpacing: "0.22em", opacity: 0.65, marginTop: 8, minHeight: "2.6em", textTransform: "uppercase", lineHeight: 1.5 }}>
                   {cur ? (

@@ -16,7 +16,7 @@ Scalio is a non-custodial USDT crypto payment card. Instead of preloading or con
 | **Payments** | Apple Pay and Google Pay, worldwide POS and online |
 | **Rewards** | Instant USDT joining bonus on activation, plus cashback on every spend |
 
-### Card tiers
+### The cards
 
 | | Scalio Core | Scalio Pro | Scalio Max |
 |---|---|---|---|
@@ -29,7 +29,7 @@ Scalio is a non-custodial USDT crypto payment card. Instead of preloading or con
 
 - **100% non-custodial:** funds stay under the user's keys until the moment of payment.
 - **No top-ups or preloading:** direct, real-time settlement at the point of sale.
-- **Zero maintenance fees:** $0 joining and $0 annual fee on every tier.
+- **Zero maintenance fees:** $0 joining and $0 annual fee on every card.
 
 ---
 
@@ -37,9 +37,9 @@ Scalio is a non-custodial USDT crypto payment card. Instead of preloading or con
 
 A single-page site with a scroll-driven 3D hero and a glassmorphism UI in a dark theme.
 
-- **Hero:** a WebGL stack of the three tier cards that fans, slides, spreads in depth and turns as you scroll through six frames (cover, card, tiers, zero fees, tap & pay, activate). The cards always stay in separate parallel planes, so they never intersect.
+- **Hero:** a WebGL stack of the three cards that fan, slides, spreads in depth and turns as you scroll through six frames (cover, card, rewards, zero fees, tap & pay, activate). The cards always stay in separate parallel planes, so they never intersect.
 - **Hero background:** a full-screen light-trail effect (Covelight, rendered with three.js) pinned behind the card section, ending where the next section begins.
-- **Sections:** stats, comparison table, tier cards, how it works, security, FAQ, call to action and footer.
+- **Sections:** stats, comparison table, card showcase, how it works, security, FAQ, call to action and footer.
 - **Glassmorphism and hover effects:** frosted cards with 3D tilt and a cursor-following spotlight, magnetic buttons, card shine sweeps.
 - **Dark theme:** black and white with Scalio blue (`#2C3480`) as the accent colour.
 - **Responsive:** laid out and tested for phone widths, with touch-friendly behaviour (no sticky hover states).
@@ -60,7 +60,7 @@ A single-page site with a scroll-driven 3D hero and a glassmorphism UI in a dark
 
 **Back end**
 - Node.js with Express 5
-- REST API for tier data, FAQs and card-activation sign-ups
+- REST API for card data, FAQs and card-activation sign-ups
 - Serves the built front end in production
 
 ---
@@ -75,7 +75,7 @@ scalio card/
 │       ├── App.jsx              Page, sections, GSAP animations
 │       ├── index.css            Design tokens, dark theme, responsive styles
 │       ├── components/
-│       │   ├── Card.jsx         CSS card used in tier boxes and security section
+│       │   ├── Card.jsx         CSS card used in the card boxes and security section
 │       │   ├── Badge.jsx        Rotating text badge
 │       │   └── ui/
 │       │       ├── scalio-card-specimen.tsx   Scroll-scrubbed 3D card hero (WebGL)
@@ -111,9 +111,9 @@ For development with hot reload, run `npm run dev` in `server` (API on port 5000
 
 | Method | Route | Description |
 |---|---|---|
-| `GET` | `/api/tiers` | The three card tiers |
+| `GET` | `/api/cards` | The three cards |
 | `GET` | `/api/faqs` | Frequently asked questions |
-| `POST` | `/api/activate` | Join the activation list: `{ "tier": "core" \| "pro" \| "max", "email": "..." }` |
+| `POST` | `/api/activate` | Join the activation list: `{ "card": "core" \| "pro" \| "max", "email": "..." }` |
 
 Sign-ups are kept in memory only; connect a database before using this in production.
 
@@ -122,7 +122,7 @@ Sign-ups are kept in memory only; connect a database before using this in produc
 ## Deploying to Vercel
 
 1. Import the repo in Vercel and set **Root Directory** to `client`. The framework (Vite), build command (`npm run build`) and output (`dist`) are then detected automatically.
-2. The API is deployed as serverless functions from `client/api/` (`/api/tiers`, `/api/faqs`, `/api/activate`), so the Express server in `server/` is only needed for local development.
+2. The API is deployed as serverless functions from `client/api/` (`/api/cards`, `/api/faqs`, `/api/activate`), so the Express server in `server/` is only needed for local development.
 3. Sign-ups are validated but not stored on Vercel (functions have no shared memory); connect a database to keep them.
 
 ---
@@ -132,12 +132,12 @@ Sign-ups are kept in memory only; connect a database before using this in produc
 I designed and built this website end to end:
 
 - Turned the supplied UI / UX design and the Scalio product specification into a working React and Node.js application.
-- Built the scroll-driven 3D card hero in raw WebGL: procedural card geometry, custom shaders, card faces painted from live tier data, and a motion system that keeps the cards in parallel planes so they never intersect.
+- Built the scroll-driven 3D card hero in raw WebGL: procedural card geometry, custom shaders, card faces painted from live card data, and a motion system that keeps the cards in parallel planes so they never intersect.
 - Ported a Framer light-trail component (Covelight) to a standalone React + three.js component and used it as the site-wide background.
 - Implemented the animation layer with GSAP: scroll-triggered reveals, parallax, counters, magnetic buttons and 3D tilt.
 - Designed the glassmorphism design system and its dark theme using CSS variables.
 - Made the whole site responsive and touch-friendly, and verified it at phone width.
-- Built the Express API for tiers, FAQs and activation sign-ups, and integrated it with the front end.
+- Built the Express API for cards, FAQs and activation sign-ups, and integrated it with the front end.
 
 ---
 

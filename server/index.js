@@ -20,20 +20,20 @@ const tiers = [
 
 const faqs = [
   { q: 'Do I need to preload or top up USDT before making a purchase?', a: 'No. Scalio uses direct settlement technology. Your USDT stays inside your Trust Wallet and is debited in real time only when you complete a transaction.' },
-  { q: 'When do I receive the joining cashback?', a: 'The instant joining cashback (10%, 15%, or 20% depending on your chosen tier) is transferred directly into your connected Trust Wallet as USDT as soon as your card activation process is complete.' },
-  { q: 'How does the purchase cashback work for everyday transactions?', a: 'Every time you make an online purchase or tap in-store using Apple Pay / Google Pay, you receive purchase cashback (2%, 5%, or 10% based on your tier) credited automatically back to your wallet.' },
-  { q: 'Are there any monthly or annual renewal fees?', a: 'None. Every Scalio card tier comes with $0 joining fee and $0 annual fee for life.' },
+  { q: 'When do I receive the joining cashback?', a: 'The instant joining cashback (10%, 15%, or 20% depending on your chosen card) is transferred directly into your connected Trust Wallet as USDT as soon as your card activation process is complete.' },
+  { q: 'How does the purchase cashback work for everyday transactions?', a: 'Every time you make an online purchase or tap in-store using Apple Pay / Google Pay, you receive purchase cashback (2%, 5%, or 10% based on your card) credited automatically back to your wallet.' },
+  { q: 'Are there any monthly or annual renewal fees?', a: 'None. Every Scalio card comes with $0 joining fee and $0 annual fee for life.' },
 ]
 
-app.get('/api/tiers', (_, res) => res.json(tiers))
+app.get('/api/cards', (_, res) => res.json(tiers))
 app.get('/api/faqs', (_, res) => res.json(faqs))
 
 const waitlist = []
 app.post('/api/activate', (req, res) => {
-  const { tier, email } = req.body || {}
+  const { card: tier, email } = req.body || {}
   if (!tiers.some(t => t.id === tier) || !/^\S+@\S+\.\S+$/.test(email || ''))
-    return res.status(400).json({ error: 'Valid tier and email required' })
-  waitlist.push({ tier, email, at: new Date().toISOString() })
+    return res.status(400).json({ error: 'Valid card and email required' })
+  waitlist.push({ card: tier, email, at: new Date().toISOString() })
   res.json({ ok: true, message: `You're on the list for ${tier.toUpperCase()}!` })
 })
 
